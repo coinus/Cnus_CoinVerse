@@ -298,14 +298,15 @@ contract CnusToken is StandardToken, Ownable, BurnableToken {
         checkGlobalTokenTransferLock
         returns (bool)
     {
+        emit AllVestedTokenReleased();
         PeriodicTokenVesting tokenVesting;
         for(uint256 i = 0; i < vestedAddresses.length; i++) {
             tokenVesting = tokenVestingContracts[vestedAddresses[i]];
             if(tokenVesting.releasableAmount(ERC20(address(this))) > 0) {
                 tokenVesting.release(ERC20(address(this)));
+                emit VestedTokenReleased(vestedAddresses[i]);
             }
         }
-        emit AllVestedTokenReleased();
         return true;
     }
 
@@ -322,6 +323,7 @@ contract CnusToken is StandardToken, Ownable, BurnableToken {
     {
         require(tokenVestingContracts[_beneficiary] != address(0));
         tokenVestingContracts[_beneficiary].release(ERC20(address(this)));
+        emit VestedTokenReleased(_beneficiary);
         return true;
     }
 
@@ -341,6 +343,7 @@ contract CnusToken is StandardToken, Ownable, BurnableToken {
         require(tokenVestingContracts[_beneficiary] != address(0));
         tokenVestingContracts[_beneficiary].revoke(ERC20(address(this)));
         _transferMisplacedToken(owner, address(this), ERC20(address(this)).balanceOf(address(this)));
+        emit RevokedTokenVesting(_beneficiary);
         return true;
     }
 
