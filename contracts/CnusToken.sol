@@ -38,6 +38,7 @@ contract CnusToken is StandardToken, Ownable, BurnableToken {
     event MintFinished();
     event MintOwnershipTransferred(address indexed previousOwner, address indexed newOwner);
     event VestingCreated(address indexed beneficiary, uint256 startTime, uint256 period, uint256 releaseCount);
+    event InitialVestingDeposited(address indexed beneficiary, uint256 amount);
     event AllVestedTokenReleased();
     event VestedTokenReleased(address indexed beneficiary);
     event RevokedTokenVesting(address indexed beneficiary);
@@ -161,6 +162,7 @@ contract CnusToken is StandardToken, Ownable, BurnableToken {
         ERC20 cnusToken = ERC20(address(this));
         require(cnusToken.allowance(owner, address(this)) >= _vestAmount);
         require(cnusToken.transferFrom(owner, tokenVestingContracts[_beneficiary], _vestAmount));
+        emit InitialVestingDeposited(_beneficiary, cnusToken.balanceOf(tokenVestingContracts[_beneficiary]));
         return true;
     }
 
