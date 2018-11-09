@@ -24,6 +24,8 @@ contract PeriodicTokenVesting is TokenVesting {
         public
         TokenVesting(_beneficiary, _startInUnixEpochTime, 0, _releasePeriodInSeconds.mul(_releaseCount), true)
     {
+        require(_releasePeriodInSeconds.mul(_releaseCount) > 0, "Vesting Duration cannot be 0");
+        require(_startInUnixEpochTime.add(_releasePeriodInSeconds.mul(_releaseCount)) > block.timestamp, "Worthless vesting");
         releasePeriod = _releasePeriodInSeconds;
         releaseCount = _releaseCount;
     }

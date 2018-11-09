@@ -13,16 +13,16 @@ import "./PeriodicTokenVesting.sol";
 contract CnusToken is StandardToken, Ownable, BurnableToken {
     using SafeMath for uint256;
 
+    // global token transfer lock
+    bool public globalTokenTransferLock = false;
+
+    bool public mintingFinished = false;
+
     string public name = "CoinUs";
     string public symbol = "CNUS";
     uint256 public decimals = 18;
 
-    // global token transfer lock
-    bool public globalTokenTransferLock = false;
-
     address public mintContractOwner;
-
-    bool public mintingFinished = false;
 
     address[] public vestedAddresses;
 
@@ -306,6 +306,7 @@ contract CnusToken is StandardToken, Ownable, BurnableToken {
             }
         }
         emit AllVestedTokenReleased();
+        return true;
     }
 
     /**
@@ -530,6 +531,7 @@ contract CnusToken is StandardToken, Ownable, BurnableToken {
     )
         internal
     {
+        require(_recipient != address(0));
         ERC20 unknownToken = ERC20(_tokenAddress);
         require(unknownToken.balanceOf(address(this)) >= _value, "Insufficient token balance.");
         require(unknownToken.transfer(_recipient, _value));
