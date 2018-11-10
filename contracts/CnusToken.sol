@@ -15,8 +15,8 @@ contract CnusToken is StandardToken, Ownable, BurnableToken {
 
     // global token transfer lock
     bool public globalTokenTransferLock = false;
-
     bool public mintingFinished = false;
+    bool public lockingDisabled = false;
 
     string public name = "CoinUs";
     string public symbol = "CNUS";
@@ -30,6 +30,7 @@ contract CnusToken is StandardToken, Ownable, BurnableToken {
     mapping( address => bool ) public lockedStatusAddress;
     mapping( address => PeriodicTokenVesting ) private tokenVestingContracts;
 
+    event LockingDisabled();
     event GlobalLocked();
     event GlobalUnlocked();
     event Locked(address indexed lockedAddress);
@@ -45,13 +46,17 @@ contract CnusToken is StandardToken, Ownable, BurnableToken {
 
     // Check for global lock status to be unlocked
     modifier checkGlobalTokenTransferLock {
-        require(!globalTokenTransferLock, "Global lock is active");
+        if (!lockingDisabled) {
+            require(!globalTokenTransferLock, "Global lock is active");
+        }
         _;
     }
 
     // Check for address lock to be unlocked
     modifier checkAddressLock {
-        require(!lockedStatusAddress[msg.sender], "Address is locked");
+        if (!lockingDisabled) {
+            require(!lockedStatusAddress[msg.sender], "Address is locked");
+        }
         _;
     }
 
@@ -73,9 +78,17 @@ contract CnusToken is StandardToken, Ownable, BurnableToken {
         mintContractOwner = msg.sender;
     }
 
+    function disableLockingForever() public
+    onlyOwner
+    {
+        lockingDisabled = true;
+        emit LockingDisabled();
+    }
+
     function setGlobalTokenTransferLock(bool locked) public
     onlyOwner
     {
+        require(!lockingDisabled);
         require(globalTokenTransferLock != locked);
         globalTokenTransferLock = locked;
         if (globalTokenTransferLock) {
@@ -95,6 +108,7 @@ contract CnusToken is StandardToken, Ownable, BurnableToken {
         public
         onlyOwner
     {
+        require(!lockingDisabled);
         require(owner != target);
         require(!lockedStatusAddress[target]);
         for(uint256 i = 0; i < vestedAddresses.length; i++) {
@@ -114,6 +128,7 @@ contract CnusToken is StandardToken, Ownable, BurnableToken {
         public
         onlyOwner
     {
+        require(!lockingDisabled);
         require(lockedStatusAddress[target]);
         lockedStatusAddress[target] = false;
         emit Unlocked(target);
@@ -383,7 +398,9 @@ contract CnusToken is StandardToken, Ownable, BurnableToken {
         checkGlobalTokenTransferLock
         returns (bool)
     {
-        require(!lockedStatusAddress[_from], "Address is locked.");
+        if (!lockingDisabled) {
+            require(!lockedStatusAddress[_from], "Address is locked.");
+        }
         return super.transferFrom(_from, _to, _value);
     }
 
