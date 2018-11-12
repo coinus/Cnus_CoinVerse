@@ -54,9 +54,7 @@ contract CnusToken is StandardToken, Ownable, BurnableToken {
 
     // Check for address lock to be unlocked
     modifier checkAddressLock {
-        if (!lockingDisabled) {
-            require(!lockedStatusAddress[msg.sender], "Address is locked");
-        }
+        require(!lockedStatusAddress[msg.sender], "Address is locked");
         _;
     }
 
@@ -398,9 +396,7 @@ contract CnusToken is StandardToken, Ownable, BurnableToken {
         checkGlobalTokenTransferLock
         returns (bool)
     {
-        if (!lockingDisabled) {
-            require(!lockedStatusAddress[_from], "Address is locked.");
-        }
+        require(!lockedStatusAddress[_from], "Address is locked.");
         return super.transferFrom(_from, _to, _value);
     }
 
